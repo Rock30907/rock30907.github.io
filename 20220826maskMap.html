@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, nofollow">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.css">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <title>口罩地圖</title>
+    <style>
+        #pharmacyInfo {
+            overflow: scroll;
+            height: 82vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid ">
+        <div class="row">
+            <div class="col-md-3 " style="height: 100vh;">
+                <select class="custom-select custom-select-lg my-3" id="CityName">
+                    <option selected disabled>-----縣市-----</option>
+                    <option value="1">台北市</option>
+                    <option value="2">新竹市</option>
+                    <option value="3">桃園市</option>
+                </select>
+                <select class="custom-select custom-select-lg my-3" id="AreaName">
+                    <option selected disabled>-----鄉鎮區-----</option>
+                    <option value="1">西屯區</option>
+                    <option value="2">北屯區</option>
+                    <option value="3">南屯區</option>
+                </select>
+                <ul class="list-group" id="pharmacyInfo">
+                    <li class="list-group-item">
+                        <h3>藥局名稱</h3>
+                        <h4><i class="fa-solid fa-phone"></i>電話</h4>
+                        <h4><i class="fa-solid fa-map-location-dot"></i>地址</h4>
+                        <p><i class="fa-solid fa-mask-face h3 text-danger"></i>成人口罩|兒童口罩</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-9 ">
+                <div id="map2" style="height:100vh ;"></div>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+    <script src="/js/CityCountyData.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/js/all.js"></script>
+    <script src="/js/leaflet.js"></script>
+    <script>
+        var selectCity;//儲存選取的縣市名稱
+        var selectArea = [];//儲存選取的鄉鎮區
+        var maskData = [];//儲存藥局資料
+        var map;//需在外層宣告才能給不同function使用
+        $(function () {//<-------showdata需宣告在此function外
+            // console.log(cityData);
+
+            map = L.map('map2').setView([24.1715, 120.6093], 14);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy;<a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // L.marker([24.1715, 120.6093]).addTo(map)
+            //     .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+            //     .openPopup();
+
+            // removeMarker();
+            //載入健保藥局資料
+            $.ajax({
+                type: "GET",
+                url: "js/points.json",
+                dataType: "json",
+                async: false,  //為什麼要關同步?
+                success: showdata,//不可以宣告在此function內
+                error: function () {
+                    alert("error-js/points.json");
+                }
+            });
+            //渲染縣市選單
+            $("#CityName").empty();
+            $("#CityName").append('<option selected disabled>-----縣市-----</option>');
+            cityData.forEach(function (item) {
+                // console.log(item.CityName);
+                var strHTML = "<option value='" + item.CityName + "'>" + item.CityName + "</option>";
+                $("#CityName").append(strHTML);
+            });
+            //縣市選單監聽，讀取所選縣市名稱
+            $("#CityName").change(function () {//change=只要有改變->印出
+                // console.log($(this).val());
+                selectCity = $(this).val();
+
+                cityData.find(function (item) {//逐一比較City並把對應小區存入
+                    if (item.CityName == selectCity) {
+                        selectArea = item.AreaList;
+                    }
+                });
+                // console.log(selectArea);
+
+                $("#AreaName").empty();
+
+                $("#AreaName").append('<option selected disabled>-----鄉鎮區-----</option>');
+                selectArea.forEach(function (item) {
+                    // console.log(item.CityName);
+                    var strHTML = "<option value='" + item.AreaName + "'>" + item.AreaName + "</option>";
+                    $("#AreaName").append(strHTML);
+                });
+            });
+            //鄉鎮區監聽
+            $("#AreaName").change(function () {
+                // console.log($(this).val());
+                selectArea = $(this).val();
+
+                var listData = [];//儲存所選區的藥局資料
+                maskData.forEach(function (item) {//同時比較縣市與鄉鎮區名稱，相同則印出藥局資料，避免同區不同市狀況
+                    if (item.properties.county == selectCity && item.properties.town == selectArea) {
+                        listData.push(item);
+                    }
+                });
+                // console.log(listData);
+                $("#pharmacyInfo").empty();
+                removeMarker();
+                listData.forEach(function (item, key) {
+
+                    // console.log(key);
+                    // console.log(item.geometry.coordinates[1]);
+                    // console.log(item.geometry.coordinates[0]);
+
+                    var lat = item.geometry.coordinates[1]; //緯度
+                    var lng = item.geometry.coordinates[0]; //經度
+
+                    var popupHTML = '<div class="card" style="width: 18rem;"><div class="card-body "><h3 class="card-text"><i class="fa-solid fa-house-medical-flag text-warning"></i>' + item.properties.name + '</h3><h4 class="card-text"><i class="fa-solid fa-phone text-primary"></i>' + item.properties.phone + '</h4><h5 class="card-text"><i class="fa-solid fa-map-location-dot h3"></i>' + item.properties.address + '</h5><h4 class="card-text"><i class="fa-solid fa-mask-face h4 text-danger"></i>成人口罩:<span class="text-success h4">' + item.properties.mask_adult + '</span>\|兒童口罩:<span class="text-info h4">' + item.properties.mask_child + '</span></h4></div></div >';
+
+                    L.marker([lat, lng]).addTo(map)
+                        .bindPopup(popupHTML);
+
+                    //移動地圖
+                    if (key == Math.round(listData.length / 2) - 1) {
+                        map.panTo([lat, lng]);
+                    }
+
+                    // <div class="card" style="width: 18rem;">
+                    //     <div class="card-body">
+                    //         <h3 class="card-text">藥局名稱</h3><h4 class="card-text"><i class="fa-sharp fa-solid fa-phone-volume"></i>電話</h4>
+                    //         <h4 class="card-text"><i class="fa-solid fa-map-location-dot"></i>地址</h4>
+                    //         <p class="card-text"><i class="fa-solid fa-mask-face h3 text-danger"></i>成人口罩|兒童口罩</p>
+                    //     </div>
+                    // </div >
+
+                    var strHTML = '<li class="list-group-item" data-name="' + item.properties.name + '" data-addr="' + item.properties.address + '" data-tel="' + item.properties.phone + '" data-mask_adult="' + item.properties.mask_adult + '" data-mask_child="' + item.properties.mask_child + '" data-lat="' + lat + '" data-lng="' + lng + '"><h3 class="font-weight-bolder">' + item.properties.name + '</h3><h4><i class="fa-solid fa-phone text-primary"></i>' + item.properties.phone + '</h4><h5><i class="fa-solid fa-map-location-dot h3" ></i>' + item.properties.address + '</h5><h4><i class="fa-solid fa-mask-face h4 text-danger"></i>成人口罩:<span class="text-success h4">' + item.properties.mask_adult + '</span>\|兒童口罩:<span class="text-info h4">' + item.properties.mask_child + '</span></h4>';
+                    $("#pharmacyInfo").append(strHTML);
+
+                });
+                //監聽Listgroup
+                $(".list-group .list-group-item").click(function () {
+                    // console.log($(this).data("name"));
+                    // console.log($(this).data("addr"));
+                    // console.log($(this).data("tel"));
+                    // console.log($(this).data("mask_adult"));
+                    // console.log($(this).data("mask_child"));
+                    // console.log($(this).data("lat"));
+                    // console.log($(this).data("lng"));
+
+                    markerPopup($(this).data("name"), $(this).data("addr"), $(this).data("tel"), $(this).data("mask_adult"), $(this).data("mask_child"), $(this).data("lat"), $(this).data("lng"));
+                });
+            });
+        });
+        function showdata(data) {
+            // console.log(data.features);
+            maskData = data.features;
+            // console.log(maskData);
+        }
+        function removeMarker() {  //刪除不需要圖層
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer)
+                }
+            });
+        }
+        function markerPopup(name, addr, tel, mask_adult, mask_child, lat, lng) {
+            // console.log('markerfun:' + name);
+            // console.log('markerfun:' + addr);
+            // console.log('markerfun:' + tel);
+            // console.log('markerfun:' + mask_adult);
+            // console.log('markerfun:' + mask_child);
+            // console.log('markerfun:' + lat);
+            // console.log('markerfun:' + lng);
+
+            var popupHTML = '<div class="card" style="width: 18rem;"><div class="card-body "><h3 class="card-text"><i class="fa-solid fa-house-medical-flag text-warning"></i>' + name + '</h3><h4 class="card-text"><i class="fa-solid fa-phone text-primary"></i>' + tel + '</h4><h5 class="card-text"><i class="fa-solid fa-map-location-dot h3"></i>' + addr + '</h5><h4 class="card-text"><i class="fa-solid fa-mask-face h4 text-danger"></i>成人口罩:<span class="text-success h4">' + mask_adult + '</span>\|兒童口罩:<span class="text-info h4">' + mask_child + '</span></h4></div></div>';
+
+            L.marker([lat, lng]).addTo(map).bindPopup(popupHTML).openPopup();
+        }
+
+    </script>
+</body>
+
+</html>
