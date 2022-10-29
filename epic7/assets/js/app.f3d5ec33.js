@@ -127,13 +127,13 @@
                     }, updateLine: function (r, a) {
                         var e = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : 0, i = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : 0, t = arguments.length > 4 && void 0 !== arguments[4] ? arguments[4] : 0, o = arguments.length > 5 && void 0 !== arguments[5] && arguments[5], n = "";
                         if (r.name) {
-                            if (n += r.name, n += r.hp ? " - ".concat(this.formatHp(r.hp), " ").concat(this.$t("hp")) : "", r.cr && a, n += r.artifact ? " - ".concat(r.artifact) : "") {
+                            if (n += r.name, n += r.hp ? " - ".concat(this.formatHp(r.hp), " ").concat(this.$t("hp")) : "", r.cr && a) {
                                 var s = r.cr; s = +s, s = t > 0 ? s + t : s, s = i > 0 ? s - i : s, s = e > 0 ? 100 * s / (e + 100) : s;
                                 var d = (s - 5) / 100, l = (s + 5) / 100;
                                 r.outspeed && (o && (d *= .7, l *= .7), d += 1, l += 1);
                                 var c = Math.round(d * a), m = Math.round(l * a), u = "".concat(c, "-").concat(m);
                                 n += " - ".concat(u, " ").concat(this.$t("speed"))
-                            } n += r.counter ? " - ".concat(this.$t("setCounter")) : "", n += r.immunity ? " - ".concat(this.$t("setImmunity")) : "", n += r.infos ? " - ".concat(r.infos) : "", n += "\r\n"
+                            } n += r.counter ? " - ".concat(this.$t("setCounter")) : "", n += r.immunity ? " - ".concat(this.$t("setImmunity")) : "", n += r.artifact ? " - ".concat(r.artifact) : "", n += r.infos ? " - ".concat(r.infos) : "", n += "\r\n"
                         } return n
                     }, formatHp: function (r) {
                         var a = r > 999 ? r / 1e3 + this.$t("formatHpK") : r;
