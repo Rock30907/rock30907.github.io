@@ -7,31 +7,40 @@
 	<!-- <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css">	
 	<script src="js/jquery-2.1.0.min.js"></script>
 	<script src="js/jquery.mobile-1.4.5.min.js"></script> -->
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-	<style>
-		body {background-color: powderblue;}
-		h1   {color: blue;}
-		p    {color: red;}
-	</style>
 	<header>
-		<img src="../rock30907.github.io/images/profile.jpg" alt="個人照">
-		<p>關於我</p>
+
+			<div id="profile" class="flex2">
+				<img src="../images/profile.jpg" alt="個人照" style="width:20%;height:20%; margin: 30px; border-radius: 90%;" >
+			</div>
+			<div class="flex-shrink-0 top">
+				<h2 style="font-size: 1.5em; ">關於我:台中人，清大動機系畢業，曾做過機構工程師，目前在學習程式語言，這邊會放上各種自己曾鑽研過的side project</h2>
+			</div>
+			
+			
+				
+
+
+		
+		
 	</header>
-		<h1>標題</h1>
+		
 		<div class="flex-shrink-0 p-3" style="width: 280px;">
-			<a href="/" class="d-flex align-items-center pb-3 mb-3 link-body-emphasis text-decoration-none border-bottom">
+			
 			  <svg class="bi pe-none me-2" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
 			  <span class="fs-5 fw-semibold">作品集</span>
-			</a>
+
 			<ul class="list-unstyled ps-0">
 			  <li class="mb-1">
 				<button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
 				  C
 				</button>
-				<div class="collapse show" id="home-collapse">
+				<div class="collapse" id="home-collapse">
 				  <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
 					<li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Overview</a></li>
 					<li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Updates</a></li>
